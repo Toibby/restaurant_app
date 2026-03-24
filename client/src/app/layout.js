@@ -42,17 +42,87 @@
 // }
 
 
+// import "./globals.css";
+
+// export const metadata = {
+//   title: "Gracee Ville Kitchen N Events",
+//   description: "Premium catering, kitchen and events experience",
+// };
+
+// // export const metadata = {
+// //   title: "SavoryBite",
+// //   description: "Premium restaurant ordering experience",
+// // };
+
+// export default function RootLayout({ children }) {
+//   return (
+//     <html lang="en">
+//       <head>
+//         <link rel="manifest" href="/manifest.json" />
+//         <meta name="theme-color" content="#f97316" />
+//       </head>
+//       <body>{children}</body>
+//     </html>
+//   );
+// }
+
+
+// import "./globals.css";
+
+// export const metadata = {
+//   title: "Gracee Ville Kitchen N Events",
+//   description: "Premium catering, kitchen and events experience",
+//   manifest: "/manifest.json",
+//   themeColor: "#f97316",
+//   appleWebApp: {
+//     capable: true,
+//     statusBarStyle: "default",
+//     title: "Gracee Ville",
+//   },
+//   icons: {
+//     icon: [
+//       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+//       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+//     ],
+//     apple: [
+//       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+//     ],
+//   },
+// };
+
+// export default function RootLayout({ children }) {
+//   return (
+//     <html lang="en">
+//       <body>{children}</body>
+//     </html>
+//   );
+// }
+
 import "./globals.css";
 
 export const metadata = {
   title: "Gracee Ville Kitchen N Events",
   description: "Premium catering, kitchen and events experience",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Gracee Ville",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
 };
 
-// export const metadata = {
-//   title: "SavoryBite",
-//   description: "Premium restaurant ordering experience",
-// };
+export const viewport = {
+  themeColor: "#f97316",
+};
 
 export default function RootLayout({ children }) {
   return (

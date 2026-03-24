@@ -173,6 +173,7 @@
 
 
 "use client";
+import { useEffect } from "react";
 
 import { useMemo, useState } from "react";
 import {
@@ -185,6 +186,8 @@ import {
   Clock3,
   ArrowRight,
 } from "lucide-react";
+
+
 
 const categories = ["All", "Rice", "Grills", "Burgers", "Drinks", "Desserts"];
 
@@ -293,6 +296,57 @@ export default function Page() {
   const [cart, setCart] = useState([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
+
+  useEffect(() => {
+    function handleBeforeInstallPrompt(e) {
+      e.preventDefault();
+      setInstallPromptEvent(e);
+      setShowInstall(true);
+    }
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   let deferredPrompt;
+
+  //   function handleBeforeInstallPrompt(e) {
+  //     e.preventDefault();
+  //     deferredPrompt = e;
+
+  //     const installBtn = document.getElementById("install-btn");
+  //     if (installBtn) {
+  //       installBtn.style.display = "inline-flex";
+
+  //       installBtn.onclick = async () => {
+  //         if (!deferredPrompt) return;
+  //         deferredPrompt.prompt();
+  //         await deferredPrompt.userChoice;
+  //         deferredPrompt = null;
+  //         installBtn.style.display = "none";
+  //       };
+  //     }
+  //   }
+
+  //   window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+  //   return () => {
+  //     window.removeEventListener(
+  //       "beforeinstallprompt",
+  //       handleBeforeInstallPrompt
+  //     );
+  //   };
+  // }, []);
+
   const filteredFoods = useMemo(() => {
     if (activeCategory === "All") return foodData;
     return foodData.filter((item) => item.category === activeCategory);
@@ -302,6 +356,15 @@ export default function Page() {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const delivery = cart.length ? 1500 : 0;
   const total = subtotal + delivery;
+  
+  async function handleInstallApp() {
+    if (!installPromptEvent) return;
+
+    installPromptEvent.prompt();
+    await installPromptEvent.userChoice;
+    setInstallPromptEvent(null);
+    setShowInstall(false);
+  }
 
   function addToCart(item) {
     setCart((prev) => {
@@ -393,6 +456,14 @@ export default function Page() {
               Open Cart
             </button>
           </div>
+
+          {showInstall ? (
+            <div className="hero-install-wrap">
+              <button className="install-pill" onClick={handleInstallApp}>
+                Install App
+              </button>
+            </div>
+          ) : null}
 
           <div className="hero-stats">
             <div className="stat-card">
@@ -702,10 +773,15 @@ export default function Page() {
 
                     if (!res.ok) throw new Error(data.error);
 
-                    alert("Your order has been received. We’ll contact you shortly ✅");
-
+                    alert("Your order has been received ✅");
+                    window.location.href = `/track/${data.order.id}`;
                     setCart([]);
                     setCheckoutOpen(false);
+
+                    // alert("Your order has been received. We’ll contact you shortly ✅");
+
+                    // setCart([]);
+                    // setCheckoutOpen(false);
                   } catch (err) {
                     alert("Order failed ❌");
                   }
