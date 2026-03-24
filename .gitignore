@@ -1,2 +1,14 @@
-server/.env
+# env files
 client/.env.local
+server/.env
+
+# node modules
+node_modules
+client/node_modules
+server/node_modules
+
+# next build
+client/.next
+
+# logs
+*.log
