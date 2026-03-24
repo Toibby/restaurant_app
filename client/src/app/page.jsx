@@ -345,8 +345,8 @@ export default function Page() {
           <div className="brand-wrap">
             <div className="brand-icon">S</div>
             <div>
-              <h1 className="brand-name">SavoryBite</h1>
-              <p className="brand-sub">Luxury Restaurant Experience</p>
+              <h1 className="brand-name">Gracee Ville Kitchen N Events</h1>
+              <p className="brand-sub">Premium Catering • Kitchen • Events</p>
             </div>
           </div>
 
@@ -373,11 +373,13 @@ export default function Page() {
 
           <h2 className="hero-title">
             A restaurant that actually feels premium, Seamless ordering.
+            {/* Memorable food. Beautifully served */}
           </h2>
 
           <p className="hero-text">
-            Discover meals that don’t just fill you — they excite you,
-            Experience bold flavors, beautiful presentation, and a dining journey designed for today.
+            From everyday meals to unforgettable events, 
+            Gracee Ville Kitchen N Events brings premium taste, 
+            elegant presentation, and seamless ordering together.
           </p>
 
           <div className="hero-actions">
@@ -517,7 +519,7 @@ export default function Page() {
           </div>
 
           <p className="about-text">
-            SavoryBite combines quality ingredients, refined preparation, 
+            Gracee Ville Kitchen N Events combines quality ingredients, refined preparation, 
             and a seamless digital experience to bring restaurant-level dining closer to you.
           </p>
         </div>

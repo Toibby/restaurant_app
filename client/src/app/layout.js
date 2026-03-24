@@ -45,9 +45,14 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "SavoryBite",
-  description: "Premium restaurant ordering experience",
+  title: "Gracee Ville Kitchen N Events",
+  description: "Premium catering, kitchen and events experience",
 };
+
+// export const metadata = {
+//   title: "SavoryBite",
+//   description: "Premium restaurant ordering experience",
+// };
 
 export default function RootLayout({ children }) {
   return (
