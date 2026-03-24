@@ -368,7 +368,8 @@ export default function Page() {
         <div className="hero-copy">
           <div className="hero-chip">
             <Flame size={16} />
-            Premium meals, modern ordering
+            Catering • Kitchen • Events
+            {/* Premium meals, modern ordering */}
           </div>
 
           <h2 className="hero-title">
@@ -399,6 +400,8 @@ export default function Page() {
               <div>
                 <strong>4.9/5</strong>
                 <span>Guest Satisfaction</span>
+                {/* <strong>On Time</strong>
+                <span>Reliable Delivery</span> */}
               </div>
             </div>
             <div className="stat-card">
@@ -430,8 +433,8 @@ export default function Page() {
       <section id="specials" className="container-shell section-space">
         <div className="section-head">
           <div>
-            <p className="section-eyebrow">Chef’s Selection</p>
-            <h3 className="section-title">Signature dishes curated for you</h3>
+            <p className="section-eyebrow">Signature Dishes</p>
+            <h3 className="section-title">Handpicked favorites our clients keep coming back for</h3>
           </div>
         </div>
 
@@ -452,10 +455,10 @@ export default function Page() {
       <section id="menu" className="container-shell section-space">
         <div className="section-head">
           <div>
-            <p className="section-eyebrow">Our Menu</p>
-            <h3 className="section-title">Explore our signature offerings</h3>
+            <p className="section-eyebrow">Explore Our Menu</p>
+            <h3 className="section-title">Freshly prepared meals crafted with quality ingredients and attention to detail</h3>
             <p className="section-text">
-              Each dish is prepared with care, crafted to deliver both flavor and experience.
+              Every plate is made to satisfy, impress, and keep you coming back.
             </p>
           </div>
         </div>
@@ -515,12 +518,13 @@ export default function Page() {
         <div className="about-box">
           <div>
             <p className="section-eyebrow">About</p>
-            <h3 className="section-title">Built for a premium dining experience</h3>
+            <h3 className="section-title">About Gracee Ville</h3>
           </div>
 
           <p className="about-text">
-            Gracee Ville Kitchen N Events combines quality ingredients, refined preparation, 
-            and a seamless digital experience to bring restaurant-level dining closer to you.
+            Gracee Ville Kitchen N Events is built on a passion for great food and excellent service. 
+            Whether it’s a quick meal or a full event catering experience, 
+            we deliver consistency, quality, and a touch of class every time.
           </p>
         </div>
       </section>
@@ -542,8 +546,8 @@ export default function Page() {
         <div className="cart-content">
           {cart.length === 0 ? (
             <div className="empty-state">
-              <p>Your cart is empty</p>
-              <span>Add meals to begin your order.</span>
+              <p>No meals selected yet</p>
+              <span>Start building your order from our menu.</span>
             </div>
           ) : (
             cart.map((item) => (
@@ -698,7 +702,7 @@ export default function Page() {
 
                     if (!res.ok) throw new Error(data.error);
 
-                    alert("Order placed successfully ✅");
+                    alert("Your order has been received. We’ll contact you shortly ✅");
 
                     setCart([]);
                     setCheckoutOpen(false);
