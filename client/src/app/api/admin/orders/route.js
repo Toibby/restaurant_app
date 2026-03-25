@@ -93,12 +93,77 @@
 
 
 
+// import { cookies } from "next/headers";
+// import { NextResponse } from "next/server";
+
+// export const dynamic = "force-dynamic";
+
+// export async function GET() {
+//   try {
+//     const cookieStore = await cookies();
+//     const session = cookieStore.get("admin_session");
+
+//     if (session?.value !== "authenticated") {
+//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//     }
+
+//     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+//     const adminSecret = process.env.ADMIN_SECRET;
+
+//     if (!apiBaseUrl) {
+//       console.error("Missing NEXT_PUBLIC_API_BASE_URL on Vercel");
+//       return NextResponse.json(
+//         { error: "NEXT_PUBLIC_API_BASE_URL is not configured" },
+//         { status: 500 }
+//       );
+//     }
+
+//     if (!adminSecret) {
+//       console.error("Missing ADMIN_SECRET on Vercel");
+//       return NextResponse.json(
+//         { error: "ADMIN_SECRET is not configured" },
+//         { status: 500 }
+//       );
+//     }
+
+//     const response = await fetch(`${apiBaseUrl}/api/orders`, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "x-admin-secret": adminSecret,
+//       },
+//       cache: "no-store",
+//     });
+
+//     const data = await response.json();
+
+//     if (!response.ok) {
+//       console.error("Render /api/orders failed:", response.status, data);
+//       return NextResponse.json(
+//         { error: data.error || "Could not fetch orders" },
+//         { status: response.status }
+//       );
+//     }
+
+//     return NextResponse.json({ orders: data.orders || [] });
+//   } catch (error) {
+//     console.error("Vercel /api/admin/orders crashed:", error);
+//     return NextResponse.json(
+//       { error: error.message || "Could not fetch orders" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { API_BASE_URL } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req) {
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get("admin_session");
@@ -107,11 +172,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const adminSecret = process.env.ADMIN_SECRET;
 
-    if (!apiBaseUrl) {
-      console.error("Missing NEXT_PUBLIC_API_BASE_URL on Vercel");
+    if (!API_BASE_URL) {
       return NextResponse.json(
         { error: "NEXT_PUBLIC_API_BASE_URL is not configured" },
         { status: 500 }
@@ -119,35 +182,65 @@ export async function GET() {
     }
 
     if (!adminSecret) {
-      console.error("Missing ADMIN_SECRET on Vercel");
       return NextResponse.json(
         { error: "ADMIN_SECRET is not configured" },
         { status: 500 }
       );
     }
 
-    const response = await fetch(`${apiBaseUrl}/api/orders`, {
+    const { searchParams } = new URL(req.url);
+    const page = searchParams.get("page") || "1";
+    const limit = searchParams.get("limit") || "20";
+    const status = searchParams.get("status") || "";
+
+    const targetUrl = new URL(`${API_BASE_URL}/api/orders`);
+    targetUrl.searchParams.set("page", page);
+    targetUrl.searchParams.set("limit", limit);
+
+    if (status) {
+      targetUrl.searchParams.set("status", status);
+    }
+
+    const response = await fetch(targetUrl.toString(), {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
         "x-admin-secret": adminSecret,
       },
       cache: "no-store",
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Upstream API did not return JSON",
+          targetUrl: targetUrl.toString(),
+          upstreamStatus: response.status,
+        },
+        { status: 500 }
+      );
+    }
 
     if (!response.ok) {
-      console.error("Render /api/orders failed:", response.status, data);
       return NextResponse.json(
-        { error: data.error || "Could not fetch orders" },
+        {
+          error: data.error || "Could not fetch orders",
+          targetUrl: targetUrl.toString(),
+          upstreamStatus: response.status,
+        },
         { status: response.status }
       );
     }
 
-    return NextResponse.json({ orders: data.orders || [] });
+    return NextResponse.json({
+      orders: data.orders || [],
+      pagination: data.pagination || null,
+    });
   } catch (error) {
-    console.error("Vercel /api/admin/orders crashed:", error);
     return NextResponse.json(
       { error: error.message || "Could not fetch orders" },
       { status: 500 }
