@@ -73,28 +73,93 @@
 // }
 
 
+// import { cookies } from "next/headers";
+// import { NextResponse } from "next/server";
+
+// export async function PATCH(req, context) {
+//   try {
+//     const cookieStore = await cookies();
+//     const session = cookieStore.get("admin_session");
+
+//     if (session?.value !== "authenticated") {
+//       return NextResponse.json(
+//         { error: "Unauthorized" },
+//         { status: 401 }
+//       );
+//     }
+
+//     const { id } = await context.params;
+//     const { status } = await req.json();
+
+//     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+//     const adminSecret = process.env.ADMIN_SECRET;
+
+//     if (!apiBaseUrl) {
+//       return NextResponse.json(
+//         { error: "NEXT_PUBLIC_API_BASE_URL is not configured" },
+//         { status: 500 }
+//       );
+//     }
+
+//     if (!adminSecret) {
+//       return NextResponse.json(
+//         { error: "ADMIN_SECRET is not configured" },
+//         { status: 500 }
+//       );
+//     }
+
+//     const res = await fetch(`${apiBaseUrl}/api/orders/${id}/status`, {
+//       method: "PATCH",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "x-admin-secret": adminSecret,
+//       },
+//       body: JSON.stringify({ status }),
+//       cache: "no-store",
+//     });
+
+//     const data = await res.json();
+
+//     if (!res.ok) {
+//       return NextResponse.json(
+//         { error: data.error || "Could not update status" },
+//         { status: res.status }
+//       );
+//     }
+
+//     return NextResponse.json(data);
+//   } catch (error) {
+//     return NextResponse.json(
+//       { error: error.message || "Could not update order status" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function PATCH(req, context) {
+export const dynamic = "force-dynamic";
+
+export async function PATCH(req, { params }) {
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get("admin_session");
 
     if (session?.value !== "authenticated") {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await context.params;
+    const { id } = params;
     const { status } = await req.json();
 
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const adminSecret = process.env.ADMIN_SECRET;
 
     if (!apiBaseUrl) {
+      console.error("Missing NEXT_PUBLIC_API_BASE_URL on Vercel");
       return NextResponse.json(
         { error: "NEXT_PUBLIC_API_BASE_URL is not configured" },
         { status: 500 }
@@ -102,13 +167,14 @@ export async function PATCH(req, context) {
     }
 
     if (!adminSecret) {
+      console.error("Missing ADMIN_SECRET on Vercel");
       return NextResponse.json(
         { error: "ADMIN_SECRET is not configured" },
         { status: 500 }
       );
     }
 
-    const res = await fetch(`${apiBaseUrl}/api/orders/${id}/status`, {
+    const response = await fetch(`${apiBaseUrl}/api/orders/${id}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -118,17 +184,19 @@ export async function PATCH(req, context) {
       cache: "no-store",
     });
 
-    const data = await res.json();
+    const data = await response.json();
 
-    if (!res.ok) {
+    if (!response.ok) {
+      console.error("Render status update failed:", response.status, data);
       return NextResponse.json(
         { error: data.error || "Could not update status" },
-        { status: res.status }
+        { status: response.status }
       );
     }
 
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Vercel /api/admin/orders/[id]/status crashed:", error);
     return NextResponse.json(
       { error: error.message || "Could not update order status" },
       { status: 500 }
