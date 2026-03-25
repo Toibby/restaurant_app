@@ -34,39 +34,103 @@
 //   }
 // }
 
-import { NextResponse } from "next/server";
+// import { NextResponse } from "next/server";
+// import { cookies } from "next/headers";
+
+// export async function PATCH(req, context) {
+//   const cookieStore = await cookies();
+//   const session = cookieStore.get("gv_admin_session");
+
+//   if (session?.value !== "verified") {
+//     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//   }
+
+//   try {
+//     const body = await req.json();
+//     const { id } = await context.params;
+
+//     const response = await fetch(
+//       `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders/${id}/status`,
+//       {
+//         method: "PATCH",
+//         headers: {
+//           "Content-Type": "application/json",
+//           "x-admin-secret": process.env.ADMIN_SECRET,
+//         },
+//         body: JSON.stringify(body),
+//         cache: "no-store",
+//       }
+//     );
+
+//     const data = await response.json();
+//     return NextResponse.json(data, { status: response.status });
+//   } catch {
+//     return NextResponse.json(
+//       { error: "Could not update order status" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 export async function PATCH(req, context) {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("gv_admin_session");
-
-  if (session?.value !== "verified") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
-    const body = await req.json();
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin_session");
+
+    if (session?.value !== "authenticated") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await context.params;
+    const { status } = await req.json();
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/orders/${id}/status`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-secret": process.env.ADMIN_SECRET,
-        },
-        body: JSON.stringify(body),
-        cache: "no-store",
-      }
-    );
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const adminSecret = process.env.ADMIN_SECRET;
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-  } catch {
+    if (!apiBaseUrl) {
+      return NextResponse.json(
+        { error: "NEXT_PUBLIC_API_BASE_URL is not configured" },
+        { status: 500 }
+      );
+    }
+
+    if (!adminSecret) {
+      return NextResponse.json(
+        { error: "ADMIN_SECRET is not configured" },
+        { status: 500 }
+      );
+    }
+
+    const res = await fetch(`${apiBaseUrl}/api/orders/${id}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-secret": adminSecret,
+      },
+      body: JSON.stringify({ status }),
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: data.error || "Could not update status" },
+        { status: res.status }
+      );
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
     return NextResponse.json(
-      { error: "Could not update order status" },
+      { error: error.message || "Could not update order status" },
       { status: 500 }
     );
   }
