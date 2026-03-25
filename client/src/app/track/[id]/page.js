@@ -749,3 +749,166 @@ export default async function TrackOrderPage({ params }) {
     </main>
   );
 }
+
+
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { Clock3, MapPin, Phone, ReceiptText, ShoppingBag } from "lucide-react";
+import OrderStatusBadge from "@/components/OrderStatusBadge";
+import TrackingTimeline from "@/components/TrackingTimeline";
+import { formatCurrency } from "@/lib/formatCurrency";
+import { API_BASE_URL, fetchWithTimeout } from "@/lib/api";
+
+function formatDate(value) {
+  if (!value) return "-";
+  return new Date(value).toLocaleString();
+}
+
+export default function TrackOrderPage() {
+  const { id } = useParams();
+
+  const [order, setOrder] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  async function fetchOrder() {
+    try {
+      const res = await fetchWithTimeout(`${API_BASE_URL}/api/orders/${id}`, {
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Order not found");
+      }
+
+      setOrder(data.order);
+      setError("");
+    } catch (err) {
+      setError(err.message || "Could not fetch order");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!id) return;
+
+    fetchOrder();
+
+    const interval = setInterval(() => {
+      fetchOrder();
+    }, 10000); // refresh every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [id]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-950">
+        Loading order...
+      </main>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center text-center px-4">
+        <h1 className="text-3xl font-bold">Order not found</h1>
+        <p className="mt-3 text-slate-400">
+          We could not find this order. Please check your tracking link.
+        </p>
+        <Link
+          href="/"
+          className="mt-6 rounded-2xl bg-orange-500 px-6 py-3 font-semibold text-slate-950"
+        >
+          Back to homepage
+        </Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-white px-4 py-10">
+      <div className="max-w-5xl mx-auto space-y-6">
+
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Track your order</h1>
+            <p className="text-slate-400 text-sm mt-1">
+              Order ID: {order.id}
+            </p>
+          </div>
+
+          <OrderStatusBadge status={order.status} />
+        </div>
+
+        <TrackingTimeline status={order.status} />
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="card">
+            <p className="label">Customer</p>
+            <p>{order.customer_name}</p>
+          </div>
+
+          <div className="card">
+            <p className="label">Phone</p>
+            <p>{order.phone}</p>
+          </div>
+
+          <div className="card md:col-span-2">
+            <p className="label">Address</p>
+            <p>{order.address}</p>
+          </div>
+
+          <div className="card md:col-span-2">
+            <p className="label">Placed</p>
+            <p>{formatDate(order.created_at)}</p>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 className="font-bold mb-4">Order Summary</h3>
+
+          {order.items.map((item, index) => (
+            <div key={index} className="flex justify-between mb-2">
+              <span>
+                {item.name} x {item.quantity}
+              </span>
+              <span>
+                {formatCurrency(item.price * item.quantity)}
+              </span>
+            </div>
+          ))}
+
+          <hr className="my-4 border-white/10" />
+
+          <div className="flex justify-between text-sm text-slate-400">
+            <span>Subtotal</span>
+            <span>{formatCurrency(order.subtotal)}</span>
+          </div>
+
+          <div className="flex justify-between text-sm text-slate-400">
+            <span>Delivery</span>
+            <span>{formatCurrency(order.delivery_fee)}</span>
+          </div>
+
+          <div className="flex justify-between font-bold text-lg mt-2">
+            <span>Total</span>
+            <span>{formatCurrency(order.total_amount)}</span>
+          </div>
+        </div>
+      </div>
+      <div className="rounded-[32px] border border-orange-500/20 bg-orange-500/10 p-6">
+        <h3 className="text-lg font-bold text-white">Need help?</h3>
+        <p className="mt-2 text-sm text-slate-200">
+          If you need to confirm details or get delivery assistance, please contact the restaurant directly.
+        </p>
+      </div>
+    </main>
+  );
+}
