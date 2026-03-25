@@ -751,11 +751,177 @@
 // }
 
 
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useParams } from "next/navigation";
+// import Link from "next/link";
+// import { Clock3, MapPin, Phone, ReceiptText, ShoppingBag } from "lucide-react";
+// import OrderStatusBadge from "@/components/OrderStatusBadge";
+// import TrackingTimeline from "@/components/TrackingTimeline";
+// import { formatCurrency } from "@/lib/formatCurrency";
+// import { API_BASE_URL, fetchWithTimeout } from "@/lib/api";
+
+// function formatDate(value) {
+//   if (!value) return "-";
+//   return new Date(value).toLocaleString();
+// }
+
+// export default function TrackOrderPage() {
+//   const { id } = useParams();
+
+//   const [order, setOrder] = useState(null);
+//   const [error, setError] = useState("");
+//   const [loading, setLoading] = useState(true);
+
+//   async function fetchOrder() {
+//     try {
+//       const res = await fetchWithTimeout(`${API_BASE_URL}/api/orders/${id}`, {
+//         cache: "no-store",
+//       });
+
+//       const data = await res.json();
+
+//       if (!res.ok) {
+//         throw new Error(data.error || "Order not found");
+//       }
+
+//       setOrder(data.order);
+//       setError("");
+//     } catch (err) {
+//       setError(err.message || "Could not fetch order");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }
+
+//   useEffect(() => {
+//     if (!id) return;
+
+//     fetchOrder();
+
+//     const interval = setInterval(() => {
+//       fetchOrder();
+//     }, 10000); // refresh every 10 seconds
+
+//     return () => clearInterval(interval);
+//   }, [id]);
+
+//   if (loading) {
+//     return (
+//       <main className="min-h-screen flex items-center justify-center text-white bg-slate-950">
+//         Loading order...
+//       </main>
+//     );
+//   }
+
+//   if (error || !order) {
+//     return (
+//       <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center text-center px-4">
+//         <h1 className="text-3xl font-bold">Order not found</h1>
+//         <p className="mt-3 text-slate-400">
+//           We could not find this order. Please check your tracking link.
+//         </p>
+//         <Link
+//           href="/"
+//           className="mt-6 rounded-2xl bg-orange-500 px-6 py-3 font-semibold text-slate-950"
+//         >
+//           Back to homepage
+//         </Link>
+//       </main>
+//     );
+//   }
+
+//   return (
+//     <main className="min-h-screen bg-slate-950 text-white px-4 py-10">
+//       <div className="max-w-5xl mx-auto space-y-6">
+
+//         <div className="flex justify-between items-center">
+//           <div>
+//             <h1 className="text-3xl font-bold">Track your order</h1>
+//             <p className="text-slate-400 text-sm mt-1">
+//               Order ID: {order.id}
+//             </p>
+//           </div>
+
+//           <OrderStatusBadge status={order.status} />
+//         </div>
+
+//         <TrackingTimeline status={order.status} />
+
+//         <div className="grid gap-4 md:grid-cols-2">
+//           <div className="card">
+//             <p className="label">Customer</p>
+//             <p>{order.customer_name}</p>
+//           </div>
+
+//           <div className="card">
+//             <p className="label">Phone</p>
+//             <p>{order.phone}</p>
+//           </div>
+
+//           <div className="card md:col-span-2">
+//             <p className="label">Address</p>
+//             <p>{order.address}</p>
+//           </div>
+
+//           <div className="card md:col-span-2">
+//             <p className="label">Placed</p>
+//             <p>{formatDate(order.created_at)}</p>
+//           </div>
+//         </div>
+
+//         <div className="card">
+//           <h3 className="font-bold mb-4">Order Summary</h3>
+
+//           {order.items.map((item, index) => (
+//             <div key={index} className="flex justify-between mb-2">
+//               <span>
+//                 {item.name} x {item.quantity}
+//               </span>
+//               <span>
+//                 {formatCurrency(item.price * item.quantity)}
+//               </span>
+//             </div>
+//           ))}
+
+//           <hr className="my-4 border-white/10" />
+
+//           <div className="flex justify-between text-sm text-slate-400">
+//             <span>Subtotal</span>
+//             <span>{formatCurrency(order.subtotal)}</span>
+//           </div>
+
+//           <div className="flex justify-between text-sm text-slate-400">
+//             <span>Delivery</span>
+//             <span>{formatCurrency(order.delivery_fee)}</span>
+//           </div>
+
+//           <div className="flex justify-between font-bold text-lg mt-2">
+//             <span>Total</span>
+//             <span>{formatCurrency(order.total_amount)}</span>
+//           </div>
+//         </div>
+//       </div>
+//       <div className="rounded-[32px] border border-orange-500/20 bg-orange-500/10 p-6">
+//         <h3 className="text-lg font-bold text-white">Need help?</h3>
+//         <p className="mt-2 text-sm text-slate-200">
+//           If you need to confirm details or get delivery assistance, please contact the restaurant directly.
+//         </p>
+//       </div>
+//     </main>
+//   );
+// }
+
+
+
+
+
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Clock3, MapPin, Phone, ReceiptText, ShoppingBag } from "lucide-react";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import TrackingTimeline from "@/components/TrackingTimeline";
@@ -768,147 +934,339 @@ function formatDate(value) {
 }
 
 export default function TrackOrderPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id;
 
   const [order, setOrder] = useState(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState("");
 
-  async function fetchOrder() {
-    try {
-      const res = await fetchWithTimeout(`${API_BASE_URL}/api/orders/${id}`, {
-        cache: "no-store",
-      });
+  const fetchOrder = useCallback(
+    async (isBackgroundRefresh = false) => {
+      if (!id) return;
 
-      const data = await res.json();
+      try {
+        if (isBackgroundRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
 
-      if (!res.ok) {
-        throw new Error(data.error || "Order not found");
+        setError("");
+
+        const response = await fetchWithTimeout(
+          `${API_BASE_URL}/api/orders/${id}`,
+          {
+            cache: "no-store",
+          },
+          10000
+        );
+
+        const rawText = await response.text();
+
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          throw new Error("Tracking API did not return valid JSON");
+        }
+
+        if (response.status === 404) {
+          setNotFound(true);
+          setOrder(null);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || "Could not fetch order");
+        }
+
+        setOrder(data.order || null);
+        setNotFound(false);
+      } catch (err) {
+        setError(err.message || "Could not fetch order");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-
-      setOrder(data.order);
-      setError("");
-    } catch (err) {
-      setError(err.message || "Could not fetch order");
-    } finally {
-      setLoading(false);
-    }
-  }
+    },
+    [id]
+  );
 
   useEffect(() => {
-    if (!id) return;
-
-    fetchOrder();
+    fetchOrder(false);
 
     const interval = setInterval(() => {
-      fetchOrder();
-    }, 10000); // refresh every 10 seconds
+      fetchOrder(true);
+    }, 10000);
 
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchOrder]);
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center text-white bg-slate-950">
-        Loading order...
+      <main className="min-h-screen bg-slate-950 text-white">
+        <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="animate-pulse">
+            <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="h-4 w-28 rounded bg-white/10" />
+                <div className="mt-3 h-10 w-64 rounded bg-white/10" />
+                <div className="mt-3 h-4 w-80 max-w-full rounded bg-white/10" />
+              </div>
+              <div className="h-12 w-32 rounded-2xl bg-white/10" />
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="space-y-6">
+                <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-6">
+                  <div className="h-8 w-56 rounded bg-white/10" />
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div className="h-24 rounded-2xl bg-white/10" />
+                    <div className="h-24 rounded-2xl bg-white/10" />
+                    <div className="h-24 rounded-2xl bg-white/10 sm:col-span-2" />
+                    <div className="h-24 rounded-2xl bg-white/10 sm:col-span-2" />
+                  </div>
+                </div>
+
+                <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-6">
+                  <div className="h-6 w-40 rounded bg-white/10" />
+                  <div className="mt-6 space-y-5">
+                    <div className="h-16 rounded bg-white/10" />
+                    <div className="h-16 rounded bg-white/10" />
+                    <div className="h-16 rounded bg-white/10" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-6">
+                  <div className="h-6 w-40 rounded bg-white/10" />
+                  <div className="mt-6 space-y-4">
+                    <div className="h-20 rounded-2xl bg-white/10" />
+                    <div className="h-20 rounded-2xl bg-white/10" />
+                    <div className="h-20 rounded-2xl bg-white/10" />
+                  </div>
+                </div>
+
+                <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-6">
+                  <div className="h-20 rounded-2xl bg-white/10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     );
   }
 
-  if (error || !order) {
+  if (notFound) {
     return (
-      <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center text-center px-4">
-        <h1 className="text-3xl font-bold">Order not found</h1>
-        <p className="mt-3 text-slate-400">
-          We could not find this order. Please check your tracking link.
-        </p>
-        <Link
-          href="/"
-          className="mt-6 rounded-2xl bg-orange-500 px-6 py-3 font-semibold text-slate-950"
-        >
-          Back to homepage
-        </Link>
+      <main className="min-h-screen bg-slate-950 text-white">
+        <section className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center px-4 text-center">
+          <p className="text-sm uppercase tracking-[0.22em] text-orange-400">
+            Order tracking
+          </p>
+          <h1 className="mt-4 text-4xl font-bold">Order not found</h1>
+          <p className="mt-4 max-w-xl text-slate-400">
+            We could not find an order with this tracking link. Please check the link and try again.
+          </p>
+
+          <Link
+            href="/"
+            className="mt-8 rounded-2xl bg-orange-500 px-6 py-3 font-semibold text-slate-950 transition hover:scale-[1.01]"
+          >
+            Back to homepage
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  if (error && !order) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <section className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center px-4 text-center">
+          <p className="text-sm uppercase tracking-[0.22em] text-orange-400">
+            Something went wrong
+          </p>
+          <h1 className="mt-4 text-4xl font-bold">Unable to load tracking page</h1>
+          <p className="mt-4 max-w-xl text-slate-400">
+            {error}
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <button
+              onClick={() => fetchOrder(false)}
+              className="rounded-2xl bg-orange-500 px-6 py-3 font-semibold text-slate-950 transition hover:scale-[1.01]"
+            >
+              Try again
+            </button>
+
+            <Link
+              href="/"
+              className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white transition hover:bg-white/10"
+            >
+              Back home
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white px-4 py-10">
-      <div className="max-w-5xl mx-auto space-y-6">
-
-        <div className="flex justify-between items-center">
+    <main className="min-h-screen bg-slate-950 text-white">
+      <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Track your order</h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Order ID: {order.id}
+            <p className="text-sm uppercase tracking-[0.22em] text-orange-400">
+              Order tracking
+            </p>
+            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">
+              Track your order
+            </h1>
+            <p className="mt-2 text-slate-400">
+              Stay updated on the progress of your meal and delivery.
             </p>
           </div>
 
-          <OrderStatusBadge status={order.status} />
-        </div>
+          <div className="flex items-center gap-3">
+            {refreshing ? (
+              <span className="text-sm text-slate-400">Refreshing...</span>
+            ) : null}
 
-        <TrackingTimeline status={order.status} />
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="card">
-            <p className="label">Customer</p>
-            <p>{order.customer_name}</p>
-          </div>
-
-          <div className="card">
-            <p className="label">Phone</p>
-            <p>{order.phone}</p>
-          </div>
-
-          <div className="card md:col-span-2">
-            <p className="label">Address</p>
-            <p>{order.address}</p>
-          </div>
-
-          <div className="card md:col-span-2">
-            <p className="label">Placed</p>
-            <p>{formatDate(order.created_at)}</p>
+            <Link
+              href="/"
+              className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Back to menu
+            </Link>
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="font-bold mb-4">Order Summary</h3>
+        {error ? (
+          <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            We could not refresh the latest status just now. Showing the last available update.
+          </div>
+        ) : null}
 
-          {order.items.map((item, index) => (
-            <div key={index} className="flex justify-between mb-2">
-              <span>
-                {item.name} x {item.quantity}
-              </span>
-              <span>
-                {formatCurrency(item.price * item.quantity)}
-              </span>
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-6">
+            <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm text-slate-400">Order ID</p>
+                  <h2 className="mt-1 break-all text-xl font-bold">{order.id}</h2>
+                </div>
+
+                <OrderStatusBadge status={order.status} />
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                  <div className="mb-2 flex items-center gap-2 text-slate-300">
+                    <ReceiptText size={16} />
+                    <span className="text-sm font-medium">Customer</span>
+                  </div>
+                  <p className="font-semibold text-white">{order.customer_name}</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                  <div className="mb-2 flex items-center gap-2 text-slate-300">
+                    <Phone size={16} />
+                    <span className="text-sm font-medium">Phone</span>
+                  </div>
+                  <p className="font-semibold text-white">{order.phone}</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4 sm:col-span-2">
+                  <div className="mb-2 flex items-center gap-2 text-slate-300">
+                    <MapPin size={16} />
+                    <span className="text-sm font-medium">Delivery address</span>
+                  </div>
+                  <p className="font-semibold text-white">{order.address}</p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4 sm:col-span-2">
+                  <div className="mb-2 flex items-center gap-2 text-slate-300">
+                    <Clock3 size={16} />
+                    <span className="text-sm font-medium">Placed</span>
+                  </div>
+                  <p className="font-semibold text-white">
+                    {formatDate(order.created_at)}
+                  </p>
+                </div>
+              </div>
             </div>
-          ))}
 
-          <hr className="my-4 border-white/10" />
-
-          <div className="flex justify-between text-sm text-slate-400">
-            <span>Subtotal</span>
-            <span>{formatCurrency(order.subtotal)}</span>
+            <TrackingTimeline status={order.status} />
           </div>
 
-          <div className="flex justify-between text-sm text-slate-400">
-            <span>Delivery</span>
-            <span>{formatCurrency(order.delivery_fee)}</span>
-          </div>
+          <div className="space-y-6">
+            <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
+              <div className="mb-5 flex items-center gap-2">
+                <ShoppingBag size={18} className="text-orange-400" />
+                <h3 className="text-xl font-bold">Order summary</h3>
+              </div>
 
-          <div className="flex justify-between font-bold text-lg mt-2">
-            <span>Total</span>
-            <span>{formatCurrency(order.total_amount)}</span>
+              <div className="space-y-4">
+                {Array.isArray(order.items) && order.items.length ? (
+                  order.items.map((item, index) => (
+                    <div
+                      key={`${order.id}-${index}`}
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-4"
+                    >
+                      <div>
+                        <p className="font-semibold text-white">{item.name}</p>
+                        <p className="text-sm text-slate-400">
+                          Quantity: {item.quantity}
+                        </p>
+                      </div>
+
+                      <p className="font-semibold text-white">
+                        {formatCurrency(
+                          Number(item.price || 0) * Number(item.quantity || 0)
+                        )}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4 text-slate-400">
+                    No items found for this order.
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 rounded-[28px] border border-white/10 bg-slate-900/70 p-5">
+                <div className="mb-3 flex items-center justify-between text-sm text-slate-400">
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(Number(order.subtotal || 0))}</span>
+                </div>
+
+                <div className="mb-3 flex items-center justify-between text-sm text-slate-400">
+                  <span>Delivery fee</span>
+                  <span>{formatCurrency(Number(order.delivery_fee || 0))}</span>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-white/10 pt-4 text-lg font-bold text-white">
+                  <span>Total</span>
+                  <span>{formatCurrency(Number(order.total_amount || 0))}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[32px] border border-orange-500/20 bg-orange-500/10 p-6">
+              <h3 className="text-lg font-bold text-white">Need help?</h3>
+              <p className="mt-2 text-sm text-slate-200">
+                If you need to confirm details or get delivery assistance, please contact the restaurant directly.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="rounded-[32px] border border-orange-500/20 bg-orange-500/10 p-6">
-        <h3 className="text-lg font-bold text-white">Need help?</h3>
-        <p className="mt-2 text-sm text-slate-200">
-          If you need to confirm details or get delivery assistance, please contact the restaurant directly.
-        </p>
-      </div>
+      </section>
     </main>
   );
 }
